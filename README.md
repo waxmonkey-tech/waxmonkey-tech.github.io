@@ -1,1 +1,1 @@
-# waxmonkey-tech.github.io
+# ImageAnalyst Pro.github.io
