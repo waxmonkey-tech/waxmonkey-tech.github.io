@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>ImageAnalyst Pro · 多列布局 · 文字样式</title>
+    <!-- 引入 Sortable 实现拖拽排序 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #f5f7fb;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 28px;
+        }
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .subhead {
+            color: #475569;
+            margin-top: 0;
+            margin-bottom: 28px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 16px;
+            font-size: 1rem;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 28px;
+        }
+        @media (max-width: 800px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        /* 左侧图片区 */
+        .image-panel {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 24px 16px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: border 0.2s;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
+        .upload-text {
+            font-weight: 500;
+            color: #334155;
+        }
+        .upload-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 6px;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            background: #e2e8f0;
+            display: block;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+        .preview-container {
+            text-align: center;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 右侧表单区 */
+        .form-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 8px 0 0 0;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            border-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 8px rgba(59,130,246,0.3);
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #94a3b8;
+        }
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+        .template-select {
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.9rem;
+            min-width: 160px;
+        }
+        .template-badge {
+            background: #e6f0ff;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e4f8a;
+            white-space: nowrap;
+        }
+        .fields-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-bottom: 20px;
+            border-top: 1px solid #e9eef2;
+            padding-top: 16px;
+        }
+        .field-item {
+            background: #f9f9fc;
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid #e9eef2;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        .field-item.sortable-ghost {
+            opacity: 0.4;
+            background: #cbd5e1;
+        }
+        .field-item.sortable-drag {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .drag-handle {
+            cursor: grab;
+            padding-right: 8px;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            user-select: none;
+            touch-action: pan-y;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .field-label {
+            font-weight: 600;
+            min-width: 100px;
+            color: #0f172a;
+        }
+        .field-control {
+            flex: 2;
+            min-width: 200px;
+        }
+        .star-rating {
+            display: flex;
+            gap: 6px;
+            font-size: 1.8rem;
+            line-height: 1;
+            color: #f59e0b;
+        }
+        .star {
+            cursor: pointer;
+            transition: 0.1s;
+            user-select: none;
+        }
+        .star:hover {
+            transform: scale(1.1);
+            color: #d97706;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 40px;
+            border: 1px solid #d1d9e6;
+            font-size: 0.95rem;
+            background: white;
+        }
+        input:focus {
+            outline: 2px solid #3b82f6;
+            border-color: transparent;
+        }
+        .field-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .style-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 30px;
+            color: #475569;
+        }
+        .style-btn:hover {
+            background: #e2e8f0;
+        }
+        .delete-field {
+            color: #ef4444;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 30px;
+        }
+        .delete-field:hover {
+            background: #fee2e2;
+        }
+        .style-popup {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: white;
+            border: 1px solid #d1d9e6;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 100;
+            width: 220px;
+            display: none;
+        }
+        .style-popup.show {
+            display: block;
+        }
+        .style-popup label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .style-popup input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        .style-popup .bold-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .add-field-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 60px;
+            margin: 16px 0;
+        }
+        .add-field-row input, .add-field-row select {
+            flex: 1 1 150px;
+        }
+        .footer-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .export-options {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .radio-group {
+            display: flex;
+            gap: 12px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .col-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .col-selector select {
+            padding: 6px 10px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+        }
+        .filename-example {
+            font-size: 0.8rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+        .drag-hint {
+            font-size: 0.8rem;
+            color: #3b82f6;
+            background: #e6f0ff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>🖼️ ImageAnalyst Pro</h1>
+    <div class="subhead">纯本地 · 多列布局 · 文字样式 · 模板保存</div>
+
+    <div class="main-grid">
+        <!-- 左侧图片区 -->
+        <div class="image-panel">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">点击或拖拽图片到此</div>
+                <div class="upload-hint">支持 JPG, PNG, WebP</div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+            <div class="preview-container">
+                <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150' fill='%23cbd5e1'%3E%3Crect width='200' height='150' /%3E%3Ctext x='10' y='75' font-family='system-ui' font-size='14' fill='%23674788'%3E预览区域%3C/text%3E%3C/svg%3E" alt="preview">
+            </div>
+            <p style="color: #475569; font-size:0.85rem; margin-top:12px;">ⓘ 最终导出会根据所选列数在图片下方附加分析文字</p>
+        </div>
+
+        <!-- 右侧表单及控制区 -->
+        <div class="form-panel">
+            <!-- 工具栏：模板选择、保存、导入导出、重命名 -->
+            <div class="toolbar">
+                <span class="template-badge">📋 模板</span>
+                <select id="templateSelect" class="template-select">
+                    <!-- 动态填充内置模板 + 自定义模板 -->
+                </select>
+                <button class="btn btn-sm" id="btnSaveTemplate">💾 保存为新模板</button>
+                <button class="btn btn-sm" id="btnRenameTemplate">✏️ 重命名</button>
+                <button class="btn btn-sm" id="btnDeleteTemplate" title="删除当前自定义模板">🗑️ 删除</button>
+                <button class="btn btn-sm" id="btnExportTemplate">⬇️ 导出</button>
+                <button class="btn btn-sm" id="btnImportTemplate">📂 导入</button>
+                <input type="file" id="importFile" accept="application/json" style="display: none;">
+            </div>
+
+            <!-- 拖拽提示 -->
+            <div class="drag-hint">↕️ 拖动左侧 ⋮⋮ 把手可排序 (触摸设备长按把手) · 点击⚙️设置文字样式</div>
+
+            <!-- 动态字段列表将渲染在此 -->
+            <div id="fieldsContainer" class="fields-container">
+                <!-- JS动态填充 -->
+            </div>
+
+            <!-- 添加自定义字段 -->
+            <div class="add-field-row">
+                <input type="text" id="newFieldName" placeholder="字段名称, 如: 光比" value="">
+                <select id="newFieldType">
+                    <option value="text">文本</option>
+                    <option value="stars">星级 (1-5)</option>
+                    <option value="date">日期/时间</option>
+                </select>
+                <button class="btn btn-primary" id="btnAddField">➕ 添加字段</button>
+            </div>
+
+            <!-- 底部导出 -->
+            <div class="footer-actions">
+                <div class="export-options">
+                    <span style="font-weight:500;">导出格式:</span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="format" value="png" checked> PNG</label>
+                        <label><input type="radio" name="format" value="jpeg"> JPEG</label>
+                    </div>
+                    <div class="col-selector">
+                        <span>列数:</span>
+                        <select id="colCountSelect">
+                            <option value="1">1列</option>
+                            <option value="2" selected>2列</option>
+                            <option value="3">3列</option>
+                            <option value="4">4列</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="btnExportImage">⬇ 下载合并图片</button>
+                </div>
+                <div class="filename-example">文件名: 原图_ImageAnalyst_时间戳</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 样式浮层模板（隐藏，点击时克隆显示） -->
+<template id="stylePopupTemplate">
+    <div class="style-popup">
+        <label>字体大小: <span class="font-size-value">16px</span></label>
+        <input type="range" min="8" max="32" value="16" class="font-size-slider">
+        <div class="bold-checkbox">
+            <input type="checkbox" id="boldCheckbox"> <label for="boldCheckbox">加粗</label>
+        </div>
+    </div>
+</template>
+
+<script>
+(function() {
+    // ---------- 内置模板定义 ----------
+    const BUILTIN_TEMPLATES = [
+        {
+            name: '摄影分析模板',
+            fields: [
+                { id: 'rating', label: '评级', type: 'stars', fontSize: 16, bold: false },
+                { id: 'composition', label: '构图', type: 'text', fontSize: 16, bold: false },
+                { id: 'tonality', label: '影调', type: 'text', fontSize: 16, bold: false },
+                { id: 'color', label: '色彩', type: 'text', fontSize: 16, bold: false },
+                { id: 'interest', label: '兴趣点', type: 'text', fontSize: 16, bold: false },
+                { id: 'attraction', label: '吸引点', type: 'text', fontSize: 16, bold: false },
+                { id: 'feeling', label: '主观感受', type: 'text', fontSize: 16, bold: false },
+                { id: 'captureTime', label: '时间', type: 'date', fontSize: 16, bold: false }
+            ]
+        },
+        {
+            name: '绘画鉴赏模板',
+            fields: [
+                { id: 'rating', label: '评分', type: 'stars', fontSize: 16, bold: false },
+                { id: 'technique', label: '技法', type: 'text', fontSize: 16, bold: false },
+                { id: 'style', label: '风格流派', type: 'text', fontSize: 16, bold: false },
+                { id: 'composition', label: '构图', type: 'text', fontSize: 16, bold: false },
+                { id: 'color', label: '色彩', type: 'text', fontSize: 16, bold: false },
+                { id: 'theme', label: '主题', type: 'text', fontSize: 16, bold: false },
+                { id: 'feeling', label: '观感', type: 'text', fontSize: 16, bold: false },
+                { id: 'analysisDate', label: '分析日期', type: 'date', fontSize: 16, bold: false }
+            ]
+        }
+    ];
+
+    // ---------- 全局状态 ----------
+    let currentTemplateName = BUILTIN_TEMPLATES[0].name;
+    let fields = JSON.parse(JSON.stringify(BUILTIN_TEMPLATES[0].fields));
+    let formData = {};
+    let currentImageFile = null;
+    let imagePreviewElem = document.getElementById('imagePreview');
+    let fieldsContainer = document.getElementById('fieldsContainer');
+    let templateSelect = document.getElementById('templateSelect');
+
+    // 自定义模板存储key
+    const STORAGE_KEY = 'imageAnalyst_customTemplates';
+
+    // 加载所有模板（内置+自定义）
+    function getAllTemplates() {
+        const custom = wxGetStorageSync(STORAGE_KEY) || [];
+        return {
+            builtin: BUILTIN_TEMPLATES,
+            custom: custom
+        };
+    }
+
+    // 保存自定义模板到本地存储
+    function saveCustomTemplates(customTemplates) {
+        wxSetStorageSync(STORAGE_KEY, customTemplates);
+    }
+
+    // 简单的localStorage封装
+    function wxGetStorageSync(key) {
+        try {
+            const val = localStorage.getItem(key);
+            return val ? JSON.parse(val) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+    function wxSetStorageSync(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+        } catch (e) {}
+    }
+
+    // 初始化/重置 formData 基于 fields
+    function initFormData() {
+        const newFormData = {};
+        fields.forEach(f => {
+            if (f.type === 'stars') {
+                newFormData[f.id] = 0;
+            } else if (f.type === 'date') {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2,'0');
+                const day = String(now.getDate()).padStart(2,'0');
+                const hours = String(now.getHours()).padStart(2,'0');
+                const mins = String(now.getMinutes()).padStart(2,'0');
+                const secs = String(now.getSeconds()).padStart(2,'0');
+                newFormData[f.id] = `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+            } else {
+                newFormData[f.id] = '';
+            }
+        });
+        formData = newFormData;
+    }
+
+    // 渲染表单
+    function renderForm() {
+        let html = '';
+        fields.forEach(field => {
+            const value = formData[field.id] !== undefined ? formData[field.id] : '';
+            html += `<div class="field-item" data-field-id="${field.id}" id="field-${field.id}">`;
+            html += `<div class="drag-handle" title="拖动排序">⋮⋮</div>`;
+            html += `<div class="field-label">${field.label}</div>`;
+            html += `<div class="field-control">`;
+
+            if (field.type === 'stars') {
+                const starValue = Number(value) || 0;
+                html += `<div class="star-rating" data-field-id="${field.id}">`;
+                for (let i = 1; i <= 5; i++) {
+                    const filled = i <= starValue ? '★' : '☆';
+                    html += `<span class="star" data-value="${i}">${filled}</span>`;
+                }
+                html += `</div>`;
+            } else if (field.type === 'date') {
+                html += `<input type="text" class="date-input" data-field-id="${field.id}" value="${escapeHtml(value)}" placeholder="例如 2025-03-04 14:30">`;
+            } else {
+                html += `<input type="text" class="text-input" data-field-id="${field.id}" value="${escapeHtml(value)}" placeholder="填写内容">`;
+            }
+
+            html += `</div>`;
+            html += `<div class="field-actions">`;
+            html += `<button class="style-btn" data-field-id="${field.id}" title="文字样式">⚙️</button>`;
+            html += `<button class="delete-field" data-field-id="${field.id}" title="删除字段">🗑️</button>`;
+            html += `</div>`;
+            html += `</div>`;
+        });
+
+        fieldsContainer.innerHTML = html;
+
+        // 星级点击
+        document.querySelectorAll('.star-rating').forEach(container => {
+            const fieldId = container.dataset.fieldId;
+            container.querySelectorAll('.star').forEach(starSpan => {
+                starSpan.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = parseInt(starSpan.dataset.value, 10);
+                    formData[fieldId] = value;
+                    const stars = container.querySelectorAll('.star');
+                    stars.forEach((s, idx) => {
+                        s.textContent = (idx < value) ? '★' : '☆';
+                    });
+                });
+            });
+        });
+
+        // 文本输入
+        document.querySelectorAll('.text-input, .date-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const fieldId = input.dataset.fieldId;
+                formData[fieldId] = input.value;
+            });
+        });
+
+        // 删除按钮
+        document.querySelectorAll('.delete-field').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const fieldId = btn.dataset.fieldId;
+                fields = fields.filter(f => f.id !== fieldId);
+                delete formData[fieldId];
+                renderForm();
+                initializeSortable();
+            });
+        });
+
+        // 样式按钮
+        document.querySelectorAll('.style-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const fieldId = btn.dataset.fieldId;
+                showStylePopup(fieldId, btn);
+            });
+        });
+
+        initializeSortable();
+    }
+
+    // 显示样式浮层
+    function showStylePopup(fieldId, anchorBtn) {
+        // 关闭其他浮层
+        document.querySelectorAll('.style-popup').forEach(p => p.remove());
+
+        const field = fields.find(f => f.id === fieldId);
+        if (!field) return;
+
+        const template = document.getElementById('stylePopupTemplate').content.cloneNode(true);
+        const popup = template.querySelector('.style-popup');
+        const fontSizeSlider = popup.querySelector('.font-size-slider');
+        const fontSizeSpan = popup.querySelector('.font-size-value');
+        const boldCheckbox = popup.querySelector('#boldCheckbox');
+
+        fontSizeSlider.value = field.fontSize || 16;
+        fontSizeSpan.textContent = fontSizeSlider.value + 'px';
+        boldCheckbox.checked = field.bold || false;
+
+        fontSizeSlider.addEventListener('input', (e) => {
+            fontSizeSpan.textContent = e.target.value + 'px';
+        });
+
+        fontSizeSlider.addEventListener('change', (e) => {
+            field.fontSize = parseInt(e.target.value, 10);
+        });
+        boldCheckbox.addEventListener('change', (e) => {
+            field.bold = e.target.checked;
+        });
+
+        document.body.appendChild(popup);
+        const rect = anchorBtn.getBoundingClientRect();
+        popup.style.position = 'absolute';
+        popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        popup.style.left = (rect.right - 220) + 'px';
+        popup.classList.add('show');
+
+        const closePopup = (e) => {
+            if (!popup.contains(e.target) && e.target !== anchorBtn) {
+                popup.remove();
+                document.removeEventListener('click', closePopup);
+            }
+        };
+        setTimeout(() => {
+            document.addEventListener('click', closePopup);
+        }, 0);
+    }
+
+    // 初始化拖拽排序
+    let sortableInstance = null;
+    function initializeSortable() {
+        if (sortableInstance) {
+            sortableInstance.destroy();
+        }
+        sortableInstance = new Sortable(fieldsContainer, {
+            animation: 150,
+            handle: '.drag-handle',
+            draggable: '.field-item',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            delay: 150,
+            delayOnTouchOnly: true,
+            onEnd: function(evt) {
+                const oldIndex = evt.oldIndex;
+                const newIndex = evt.newIndex;
+                if (oldIndex !== newIndex) {
+                    const movedField = fields[oldIndex];
+                    fields.splice(oldIndex, 1);
+                    fields.splice(newIndex, 0, movedField);
+                    renderForm();
+                }
+            }
+        });
+    }
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.replace(/[&<>"]/g, function(m) {
+            if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
+            return m;
+        });
+    }
+
+    // 更新模板下拉列表
+    function refreshTemplateSelect(selectedName = currentTemplateName) {
+        const all = getAllTemplates();
+        let options = '';
+        all.builtin.forEach(t => {
+            options += `<option value="${t.name}" ${t.name === selectedName ? 'selected' : ''}>📌 ${t.name}</option>`;
+        });
+        all.custom.forEach(t => {
+            options += `<option value="${t.name}" ${t.name === selectedName ? 'selected' : ''}>✨ ${t.name}</option>`;
+        });
+        templateSelect.innerHTML = options;
+    }
+
+    // 根据模板名称加载模板
+    function loadTemplateByName(name) {
+        const all = getAllTemplates();
+        let found = all.builtin.find(t => t.name === name);
+        if (!found) {
+            found = all.custom.find(t => t.name === name);
+        }
+        if (found) {
+            currentTemplateName = found.name;
+            fields = JSON.parse(JSON.stringify(found.fields));
+            initFormData();
+            renderForm();
+            refreshTemplateSelect(currentTemplateName);
+        }
+    }
+
+    // 保存当前字段为新模板
+    function saveCurrentAsTemplate() {
+        const name = prompt('请输入新模板名称', '我的模板_' + new Date().toLocaleString().slice(0,10));
+        if (!name) return;
+        const all = getAllTemplates();
+        const exists = [...all.builtin, ...all.custom].some(t => t.name === name);
+        if (exists) {
+            if (!confirm(`模板“${name}”已存在，是否覆盖？`)) return;
+            if (all.builtin.some(t => t.name === name)) {
+                alert('不能覆盖内置模板，请使用其他名称');
+                return;
+            }
+            all.custom = all.custom.filter(t => t.name !== name);
+        }
+        all.custom.push({
+            name: name,
+            fields: JSON.parse(JSON.stringify(fields))
+        });
+        saveCustomTemplates(all.custom);
+        refreshTemplateSelect(name);
+        currentTemplateName = name;
+    }
+
+    // 删除当前选中的自定义模板
+    function deleteCurrentTemplate() {
+        const all = getAllTemplates();
+        const isBuiltin = all.builtin.some(t => t.name === currentTemplateName);
+        if (isBuiltin) {
+            alert('内置模板不能删除');
+            return;
+        }
+        if (!confirm(`确定删除模板“${currentTemplateName}”吗？`)) return;
+        all.custom = all.custom.filter(t => t.name !== currentTemplateName);
+        saveCustomTemplates(all.custom);
+        const firstBuiltin = all.builtin[0].name;
+        loadTemplateByName(firstBuiltin);
+    }
+
+    // 新增：重命名当前自定义模板
+    function renameCurrentTemplate() {
+        const all = getAllTemplates();
+        const isBuiltin = all.builtin.some(t => t.name === currentTemplateName);
+        if (isBuiltin) {
+            alert('内置模板不能重命名');
+            return;
+        }
+        const oldName = currentTemplateName;
+        const newName = prompt('请输入新模板名称', oldName);
+        if (!newName || newName === oldName) return;
+
+        // 检查新名称是否已存在（内置或自定义）
+        const exists = [...all.builtin, ...all.custom].some(t => t.name === newName);
+        if (exists) {
+            if (all.builtin.some(t => t.name === newName)) {
+                alert('不能使用内置模板的名称');
+                return;
+            }
+            if (!confirm(`模板“${newName}”已存在，是否覆盖？`)) return;
+            // 覆盖：删除同名的自定义模板
+            all.custom = all.custom.filter(t => t.name !== newName);
+        }
+
+        // 找到当前模板并改名
+        const index = all.custom.findIndex(t => t.name === oldName);
+        if (index === -1) return;
+        all.custom[index].name = newName;
+        saveCustomTemplates(all.custom);
+        currentTemplateName = newName;
+        refreshTemplateSelect(currentTemplateName);
+        // 字段不变，无需重新加载
+    }
+
+    // ---------- 图片上传 ----------
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => e.preventDefault());
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            handleImageFile(e.dataTransfer.files[0]);
+        }
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleImageFile(e.target.files[0]);
+    });
+
+    function handleImageFile(file) {
+        if (!file.type.startsWith('image/')) return;
+        currentImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreviewElem.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ---------- 模板导入/导出 ----------
+    document.getElementById('btnExportTemplate').addEventListener('click', () => {
+        const templateObj = {
+            templateName: currentTemplateName,
+            fields: fields
+        };
+        const blob = new Blob([JSON.stringify(templateObj, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentTemplateName.replace(/\s+/g,'_')}_template.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btnImportTemplate').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+    });
+    document.getElementById('importFile').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const json = JSON.parse(ev.target.result);
+                if (json.templateName && Array.isArray(json.fields)) {
+                    // 使用文件名作为模板名称（去掉扩展名）
+                    let templateName = file.name.replace(/\.[^/.]+$/, '');
+                    // 如果文件名为空或全为点，则使用原模板中的名称
+                    if (!templateName) templateName = json.templateName;
+
+                    const all = getAllTemplates();
+                    // 检查是否已存在同名模板（包括内置）
+                    const exists = [...all.builtin, ...all.custom].some(t => t.name === templateName);
+                    if (exists) {
+                        if (!confirm(`模板“${templateName}”已存在，是否覆盖？`)) return;
+                        // 如果是内置，不能覆盖
+                        if (all.builtin.some(t => t.name === templateName)) {
+                            alert('不能覆盖内置模板，请重命名文件后再导入');
+                            return;
+                        }
+                        // 移除同名的自定义模板
+                        all.custom = all.custom.filter(t => t.name !== templateName);
+                    }
+                    // 添加到自定义模板
+                    all.custom.push({
+                        name: templateName,
+                        fields: json.fields
+                    });
+                    saveCustomTemplates(all.custom);
+                    // 加载该模板
+                    loadTemplateByName(templateName);
+                } else {
+                    alert('无效的模板文件');
+                }
+            } catch (ex) {
+                alert('解析失败：' + ex.message);
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    });
+
+    // 模板下拉切换
+    templateSelect.addEventListener('change', (e) => {
+        loadTemplateByName(e.target.value);
+    });
+
+    // 保存为模板
+    document.getElementById('btnSaveTemplate').addEventListener('click', saveCurrentAsTemplate);
+
+    // 重命名模板
+    document.getElementById('btnRenameTemplate').addEventListener('click', renameCurrentTemplate);
+
+    // 删除模板
+    document.getElementById('btnDeleteTemplate').addEventListener('click', deleteCurrentTemplate);
+
+    // 添加字段
+    document.getElementById('btnAddField').addEventListener('click', () => {
+        const nameInput = document.getElementById('newFieldName');
+        const typeSelect = document.getElementById('newFieldType');
+        const label = nameInput.value.trim();
+        if (!label) {
+            alert('请输入字段名称');
+            return;
+        }
+        const type = typeSelect.value;
+        const newField = {
+            id: 'fld_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+            label: label,
+            type: type,
+            fontSize: 16,
+            bold: false
+        };
+        fields.push(newField);
+        if (type === 'stars') formData[newField.id] = 0;
+        else if (type === 'date') {
+            const now = new Date();
+            formData[newField.id] = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        } else formData[newField.id] = '';
+        renderForm();
+        nameInput.value = '';
+    });
+
+    // ---------- 导出图片 (多列 + 样式) ----------
+    document.getElementById('btnExportImage').addEventListener('click', async () => {
+        if (!currentImageFile) {
+            alert('请先上传一张图片');
+            return;
+        }
+        const format = document.querySelector('input[name="format"]:checked').value;
+        const colCount = parseInt(document.getElementById('colCountSelect').value, 10);
+
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = imagePreviewElem.src;
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+        });
+
+        const measureCanvas = document.createElement('canvas');
+        const measureCtx = measureCanvas.getContext('2d');
+
+        let imgWidth = img.naturalWidth;
+        let imgHeight = img.naturalHeight;
+        const MAX_WIDTH = 1200;
+        let scale = 1;
+        if (imgWidth > MAX_WIDTH) {
+            scale = MAX_WIDTH / imgWidth;
+            imgWidth = MAX_WIDTH;
+            imgHeight = imgHeight * scale;
+        }
+
+        const leftMargin = 20;
+        const columnGap = 20;
+        const colWidth = (imgWidth - leftMargin * 2 - (colCount - 1) * columnGap) / colCount;
+        const baseLineHeight = 1.4;
+
+        let colYs = new Array(colCount).fill(imgHeight + 15);
+
+        fields.forEach((field, index) => {
+            const colIndex = index % colCount;
+            let value = formData[field.id];
+            if (field.type === 'stars') {
+                const starCount = Number(value) || 0;
+                value = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+            } else if (!value) {
+                value = '—';
+            }
+            const text = `${field.label} : ${value}`;
+            const fontSize = field.fontSize || 16;
+            measureCtx.font = (field.bold ? 'bold ' : '') + fontSize + 'px sans-serif';
+            const lineHeight = fontSize * baseLineHeight;
+
+            const words = text.split('');
+            let line = '';
+            let lines = 0;
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i];
+                const metrics = measureCtx.measureText(testLine);
+                if (metrics.width > colWidth && line.length > 0) {
+                    lines++;
+                    line = words[i];
+                } else {
+                    line = testLine;
+                }
+            }
+            if (line) lines++;
+
+            colYs[colIndex] += lines * lineHeight;
+        });
+
+        const textAreaHeight = Math.max(...colYs) - imgHeight + 30;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = imgWidth;
+        canvas.height = imgHeight + textAreaHeight;
+        const ctx = canvas.getContext('2d');
+
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        ctx.fillStyle = 'rgba(245, 245, 250, 0.92)';
+        ctx.fillRect(0, imgHeight, imgWidth, textAreaHeight);
+        ctx.strokeStyle = '#ccc';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(20, imgHeight);
+        ctx.lineTo(imgWidth-20, imgHeight);
+        ctx.stroke();
+
+        let colCurrentYs = new Array(colCount).fill(imgHeight + 15);
+        fields.forEach((field, index) => {
+            const colIndex = index % colCount;
+            let value = formData[field.id];
+            if (field.type === 'stars') {
+                const starCount = Number(value) || 0;
+                value = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+            } else if (!value) {
+                value = '—';
+            }
+            const text = `${field.label} : ${value}`;
+            const fontSize = field.fontSize || 16;
+            ctx.font = (field.bold ? 'bold ' : '') + fontSize + 'px sans-serif';
+            ctx.fillStyle = '#1e293b';
+            ctx.textBaseline = 'top';
+
+            const startX = leftMargin + colIndex * (colWidth + columnGap);
+            let y = colCurrentYs[colIndex];
+            const lineHeight = fontSize * baseLineHeight;
+
+            const words = text.split('');
+            let line = '';
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i];
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > colWidth && line.length > 0) {
+                    ctx.fillText(line, startX, y);
+                    y += lineHeight;
+                    line = words[i];
+                } else {
+                    line = testLine;
+                }
+            }
+            if (line) {
+                ctx.fillText(line, startX, y);
+                y += lineHeight;
+            }
+
+            colCurrentYs[colIndex] = y;
+        });
+
+        const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(mime, 0.95);
+        const link = document.createElement('a');
+        let baseName = 'image';
+        if (currentImageFile) {
+            baseName = currentImageFile.name.replace(/\.[^/.]+$/, '');
+        }
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0,19);
+        const fileName = `${baseName}_ImageAnalyst_${timestamp}.${format}`;
+        link.download = fileName;
+        link.href = dataUrl;
+        link.click();
+    });
+
+    // ---------- 初始化 ----------
+    if (!wxGetStorageSync(STORAGE_KEY)) {
+        wxSetStorageSync(STORAGE_KEY, []);
+    }
+    initFormData();
+    renderForm();
+    refreshTemplateSelect(currentTemplateName);
+})();
+</script>
+</body>
+</html>
