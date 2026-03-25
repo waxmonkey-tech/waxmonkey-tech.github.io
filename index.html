@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>ImageAnalyst Pro · 多列布局 · 文字样式</title>
+    <title>ImageAnalyst Pro · 双模式导出</title>
     <!-- 引入 Sortable 实现拖拽排序 -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="Sortable.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -357,6 +357,28 @@
             border-radius: 30px;
             border: 1px solid #cbd5e1;
         }
+        .mode-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        .mode-selector label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .mode-warning {
+            color: #b45309;
+            background: #fffbeb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
         .filename-example {
             font-size: 0.8rem;
             color: #64748b;
@@ -378,7 +400,7 @@
 <body>
 <div class="app-container">
     <h1>🖼️ ImageAnalyst Pro</h1>
-    <div class="subhead">纯本地 · 多列布局 · 文字样式 · 模板保存</div>
+    <div class="subhead">纯本地 · 双模式导出 · 模板保存</div>
 
     <div class="main-grid">
         <!-- 左侧图片区 -->
@@ -392,7 +414,7 @@
             <div class="preview-container">
                 <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150' fill='%23cbd5e1'%3E%3Crect width='200' height='150' /%3E%3Ctext x='10' y='75' font-family='system-ui' font-size='14' fill='%23674788'%3E预览区域%3C/text%3E%3C/svg%3E" alt="preview">
             </div>
-            <p style="color: #475569; font-size:0.85rem; margin-top:12px;">ⓘ 最终导出会根据所选列数在图片下方附加分析文字</p>
+            <p style="color: #475569; font-size:0.85rem; margin-top:12px;">ⓘ 最终导出会根据所选列数在图片下方附加文字</p>
         </div>
 
         <!-- 右侧表单及控制区 -->
@@ -446,6 +468,13 @@
                             <option value="3">3列</option>
                             <option value="4">4列</option>
                         </select>
+                    </div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px;">
+                    <div class="mode-selector">
+                        <label><input type="radio" name="exportMode" value="standard" checked> 标准模式 (宽度≤1200, 快速)</label>
+                        <label><input type="radio" name="exportMode" value="original"> 原图模式 (保持原分辨率)</label>
+                        <span class="mode-warning" id="modeWarning" style="display: none;">⚠️ 超大图可能卡顿</span>
                     </div>
                     <button class="btn btn-primary" id="btnExportImage">⬇ 下载合并图片</button>
                 </div>
@@ -792,7 +821,7 @@
         loadTemplateByName(firstBuiltin);
     }
 
-    // 新增：重命名当前自定义模板
+    // 重命名当前自定义模板
     function renameCurrentTemplate() {
         const all = getAllTemplates();
         const isBuiltin = all.builtin.some(t => t.name === currentTemplateName);
@@ -804,7 +833,6 @@
         const newName = prompt('请输入新模板名称', oldName);
         if (!newName || newName === oldName) return;
 
-        // 检查新名称是否已存在（内置或自定义）
         const exists = [...all.builtin, ...all.custom].some(t => t.name === newName);
         if (exists) {
             if (all.builtin.some(t => t.name === newName)) {
@@ -812,18 +840,15 @@
                 return;
             }
             if (!confirm(`模板“${newName}”已存在，是否覆盖？`)) return;
-            // 覆盖：删除同名的自定义模板
             all.custom = all.custom.filter(t => t.name !== newName);
         }
 
-        // 找到当前模板并改名
         const index = all.custom.findIndex(t => t.name === oldName);
         if (index === -1) return;
         all.custom[index].name = newName;
         saveCustomTemplates(all.custom);
         currentTemplateName = newName;
         refreshTemplateSelect(currentTemplateName);
-        // 字段不变，无需重新加载
     }
 
     // ---------- 图片上传 ----------
@@ -877,31 +902,24 @@
             try {
                 const json = JSON.parse(ev.target.result);
                 if (json.templateName && Array.isArray(json.fields)) {
-                    // 使用文件名作为模板名称（去掉扩展名）
                     let templateName = file.name.replace(/\.[^/.]+$/, '');
-                    // 如果文件名为空或全为点，则使用原模板中的名称
                     if (!templateName) templateName = json.templateName;
 
                     const all = getAllTemplates();
-                    // 检查是否已存在同名模板（包括内置）
                     const exists = [...all.builtin, ...all.custom].some(t => t.name === templateName);
                     if (exists) {
                         if (!confirm(`模板“${templateName}”已存在，是否覆盖？`)) return;
-                        // 如果是内置，不能覆盖
                         if (all.builtin.some(t => t.name === templateName)) {
                             alert('不能覆盖内置模板，请重命名文件后再导入');
                             return;
                         }
-                        // 移除同名的自定义模板
                         all.custom = all.custom.filter(t => t.name !== templateName);
                     }
-                    // 添加到自定义模板
                     all.custom.push({
                         name: templateName,
                         fields: json.fields
                     });
                     saveCustomTemplates(all.custom);
-                    // 加载该模板
                     loadTemplateByName(templateName);
                 } else {
                     alert('无效的模板文件');
@@ -955,7 +973,20 @@
         nameInput.value = '';
     });
 
-    // ---------- 导出图片 (多列 + 样式) ----------
+    // 导出模式切换提示
+    const modeRadios = document.querySelectorAll('input[name="exportMode"]');
+    const modeWarning = document.getElementById('modeWarning');
+    modeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'original') {
+                modeWarning.style.display = 'inline-block';
+            } else {
+                modeWarning.style.display = 'none';
+            }
+        });
+    });
+
+    // ---------- 导出图片 (多列 + 样式 + 双模式) ----------
     document.getElementById('btnExportImage').addEventListener('click', async () => {
         if (!currentImageFile) {
             alert('请先上传一张图片');
@@ -963,6 +994,7 @@
         }
         const format = document.querySelector('input[name="format"]:checked').value;
         const colCount = parseInt(document.getElementById('colCountSelect').value, 10);
+        const exportMode = document.querySelector('input[name="exportMode"]:checked').value; // 'standard' 或 'original'
 
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -975,14 +1007,25 @@
         const measureCanvas = document.createElement('canvas');
         const measureCtx = measureCanvas.getContext('2d');
 
+        // 根据模式决定是否缩放图片
         let imgWidth = img.naturalWidth;
         let imgHeight = img.naturalHeight;
         const MAX_WIDTH = 1200;
         let scale = 1;
-        if (imgWidth > MAX_WIDTH) {
-            scale = MAX_WIDTH / imgWidth;
-            imgWidth = MAX_WIDTH;
-            imgHeight = imgHeight * scale;
+
+        if (exportMode === 'standard') {
+            if (imgWidth > MAX_WIDTH) {
+                scale = MAX_WIDTH / imgWidth;
+                imgWidth = MAX_WIDTH;
+                imgHeight = imgHeight * scale;
+            }
+        } else {
+            // 原图模式：保持原始尺寸，但给出警告（已在UI提示）
+            if (imgWidth > 4000) {
+                if (!confirm('您选择的原图模式且图片宽度超过4000像素，可能会导致浏览器卡顿或崩溃。是否继续？')) {
+                    return;
+                }
+            }
         }
 
         const leftMargin = 20;
@@ -1031,7 +1074,9 @@
         canvas.height = imgHeight + textAreaHeight;
         const ctx = canvas.getContext('2d');
 
+        // 绘制图片（注意：如果是原图模式，直接绘制原始尺寸，但canvas已经设置为原始尺寸）
         ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
         ctx.fillStyle = 'rgba(245, 245, 250, 0.92)';
         ctx.fillRect(0, imgHeight, imgWidth, textAreaHeight);
         ctx.strokeStyle = '#ccc';
